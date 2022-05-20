@@ -13,35 +13,35 @@ struct StockGraph: View {
     
     let points: [Int] = [10, 20, 30, 40, 30,25,44]
     
-    @State var bigCircles = true
+    @State var bigCircles = false
     @State var showDots = false
     
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.9)
-                .cornerRadius(7)
-                .frame(width: 100, height: 50)
-            
+        Button {
+            withAnimation(.spring()) {
+                bigCircles.toggle()
+            }
+
+        } label: {
             HStack(spacing: bigCircles ? 2 : 8) {
-                ForEach(points, id: \.self) { point in
+                ForEach(0..<points.count, id:\.self) { index in
                     Circle()
                         .frame(width: bigCircles ? 10 : 4, height: bigCircles ? 10 : 4)
                         .foregroundColor(stock.goingUp ? .green : .red)
-                        .offset(y: CGFloat(stock.goingUp ? -point : point) * 0.3)
+                        .offset(y: CGFloat(stock.goingUp ? -points[index] : points[index]) * 0.3)
                 }
             }
             .opacity(showDots ? 1 : 0)
             .offset(y: showDots ? 0 : 12)
             .animation(.default, value: showDots)
+            .frame(width: 100, height: 50)
+            .background {
+                Color.black.opacity(0.9)
+                    .cornerRadius(7)
+            }
         }
         .onAppear {
             showDots = true
-            bigCircles.toggle()
-        }
-        .onTapGesture {
-            withAnimation(.spring()) {
-                bigCircles.toggle()
-            }
         }
     }
 }

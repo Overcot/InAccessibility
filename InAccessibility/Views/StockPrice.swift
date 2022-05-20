@@ -8,19 +8,28 @@
 import SwiftUI
 
 struct StockPrice: View {
+    internal init(stockPrice: String, stockChange: String, isGoingUp: Bool, alignment: HorizontalAlignment) {
+        self.stockPrice = stockPrice
+        self.stockChange = stockChange
+        self.isGoingUp = isGoingUp
+        self.alignment = alignment
+    }
     
-    let stock: Stock
+    
+    let stockPrice: String
+    let stockChange: String
+    let isGoingUp: Bool
+    let alignment: HorizontalAlignment
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: 2) {
-            Text("\(String(format: "%.2f",stock.stockPrice))")
+        VStack(alignment: alignment, spacing: 2) {
+            Text(stockPrice)
             
-            Text("\(String(format: "%.2f",stock.change))")
-            
+            Text(stockChange)
                 .bold()
                 .font(.caption)
                 .padding(4)
-                .background(stock.goingUp ? Color.green : Color.red)
+                .background(isGoingUp ? Color.green : Color.red)
                 .cornerRadius(6)
                 .foregroundColor(.white)
         }
@@ -30,6 +39,6 @@ struct StockPrice: View {
 
 struct StockPrice_Previews: PreviewProvider {
     static var previews: some View {
-        StockPrice(stock: .example())
+        StockPrice(stockPrice: "123.54", stockChange: "123.53", isGoingUp: true, alignment: .leading)
     }
 }

@@ -8,43 +8,54 @@
 import SwiftUI
 
 struct StockCell: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private let stock: Stock
+    private let accessibilityValue: String
     
-    let stock: Stock
-    
-    @State var showInfo = false
-    
+    init(stock: Stock) {
+        self.stock = stock
+        self.accessibilityValue = stock.stockPriceFormattedWithDollar + ", " + "change " + stock.changePriceFormattedWithDollar
+
+    }
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(stock.shortName)
-                        .font(.system(size: 17))
-                        .bold()
-                    
-                    Image("info-icon")
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                        .onTapGesture {
-                            showInfo = true
-                        }
-                    
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                        .opacity(stock.favorite ? 1 : 0)                        
+        contentViewDynamicTypeSize
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(stock.name)" + ", " + "\(stock.shortName)")
+            .accessibilityRemoveTraits([.isButton])
+            .accessibilityValue(accessibilityValue)
+            .accessibilityHint("Show company info")
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 8))
+    }
+    
+    @ViewBuilder
+    private var contentViewDynamicTypeSize: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 16) {
+                    name
+                    StockPrice(stockPrice: stock.stockPriceFormattedWithoutDollar, stockChange: stock.changePriceFormattedWithoutDollar, isGoingUp: stock.goingUp, alignment: .leading)
                 }
-                Text(stock.name)
-                    .opacity(0.5)
-                    .font(.system(size: 11))
+                Spacer()
+                StockGraph(stock: stock)
             }
-            
-            Spacer()
-                
-            StockGraph(stock: stock)
-            StockPrice(stock: stock)
+        } else {
+            HStack {
+                name
+                Spacer()
+                StockGraph(stock: stock)
+                StockPrice(stockPrice: stock.stockPriceFormattedWithoutDollar, stockChange: stock.changePriceFormattedWithoutDollar, isGoingUp: stock.goingUp, alignment: .trailing)
+            }
         }
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 8))
-        .alert(isPresented: $showInfo) {
-            Alert(title: Text(stock.name), message: Text("The stock price for \(stock.name) (\(stock.shortName)) is \(stock.stockPrice)."), dismissButton: .cancel())
+    }
+    
+    private var name: some View {
+        VStack(alignment: .leading) {
+            Text(stock.shortName)
+                .font(.body)
+                .bold()
+            Text(stock.name)
+                .font(.caption2)
+                .foregroundColor(.secondary)
         }
     }
 }

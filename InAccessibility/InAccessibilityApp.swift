@@ -11,7 +11,7 @@ import SwiftUI
 struct InAccessibilityApp: App {
     var body: some Scene {
         WindowGroup {
-            MainView()
+            MainView(favoriteStocks: Stock.favorites(), allStocks: Stock.all())
         }
     }
 }

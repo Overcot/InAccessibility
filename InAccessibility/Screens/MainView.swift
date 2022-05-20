@@ -8,31 +8,85 @@
 import SwiftUI
 
 struct MainView: View {
+    private let favoriteStocks: [Stock]
+    private let allStocks: [Stock]
+    
+    init(favoriteStocks: [Stock], allStocks: [Stock]) {
+        self.favoriteStocks = favoriteStocks
+        self.allStocks = allStocks
+    }
     
     @State var showDetailStock: Stock?
-    
+    @State private var showInfoStock: Stock? = nil
     var body: some View {
         NavigationView {
             List {
                 favoriteStocksSection
                 allStocksSection
             }
+            .navigationViewStyle(.columns)
+            .alert(showInfoStock?.name ?? "", isPresented: .init(get: {
+                showInfoStock != nil
+            }, set: { newValue in
+                if (!newValue) {
+                    showInfoStock = nil
+                }
+            }), presenting: showInfoStock, actions: { _ in
+                Button("OK") {
+                    showInfoStock = nil
+                }
+                
+            }, message: { stock in
+                Text("The stock price for \(stock.name) (\(stock.shortName)) is \(stock.stockPriceFormattedWithDollar).")
+            })
             .navigationTitle("Stocks")
             .toolbar(content: {
                 toolbarItems
             })
-            .sheet(item: $showDetailStock) { stock in
-                DetailView(stock: stock)
-            }
         }
     }
     
     var favoriteStocksSection: some View {
         Section {
-            ForEach(Stock.favorites()) { stock in
-                StockCell(stock: stock)
+            ForEach(favoriteStocks) { stock in
+                NavigationLink(tag: stock, selection: $showDetailStock, destination:  {DetailView(stock: stock)}) {
+                    StockCell(stock: stock)
+
+                }
+                    .swipeActions(edge: .leading, content: {
+                        Button {
+                            
+                        } label: {
+                            if stock.favorite {
+                                Label("UnFavorite", systemImage: "star.slash")
+                            } else {
+                                Label("Favorite", systemImage: "star.slash")
+                            }
+                        }
+                        .tint(.yellow)
+                    })
+                    .swipeActions(content: {
+                        Button {
+                            showInfoStock = stock
+                        } label: {
+                            Image(systemName: "info.circle.fill")
+                        }
+                        .tint(.accentColor)
+                    })
+                    .contextMenu {
+                        Button {
+                            showInfoStock = stock
+                        } label: {
+                            Image(systemName: "info.circle.fill")
+                        }
+                        .tint(.accentColor)
+                    }
+                
                     .contentShape(Rectangle())
                     .onTapGesture {
+                        showDetailStock = stock
+                    }
+                    .accessibilityAction {
                         showDetailStock = stock
                     }
             }
@@ -55,10 +109,21 @@ struct MainView: View {
     
     var allStocksSection: some View {
         Section {
-            ForEach(Stock.all()) { stock in
+            ForEach(allStocks) { stock in
                 StockCell(stock: stock)
+                    .swipeActions(content: {
+                        Button {
+                            showInfoStock = stock
+                        } label: {
+                            Image(systemName: "info.circle.fill")
+                        }
+                        .tint(.accentColor)
+                    })
                     .contentShape(Rectangle())
                     .onTapGesture {
+                        showDetailStock = stock
+                    }
+                    .accessibilityAction {
                         showDetailStock = stock
                     }
             }
@@ -68,21 +133,21 @@ struct MainView: View {
     }
     
     var toolbarItems: some ToolbarContent {
-        Group {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    
-                } label: {
-                    Image(systemName: "gearshape.fill")
-                }
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button {
+                
+            } label: {
+                Label("Settings", systemImage: "gearshape.fill")
+                    .labelStyle(.titleOnly)
+            }.accessibilityShowsLargeContentViewer {
+                Text("Settings")
             }
-            
         }
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        MainView()
+        MainView(favoriteStocks: Stock.favorites(), allStocks: Stock.all())
     }
 }
