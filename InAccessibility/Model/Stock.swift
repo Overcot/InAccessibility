@@ -37,15 +37,11 @@ struct Stock: Identifiable, Hashable {
         self.change = goingUp ? Double.random(in: 3.12...149.44) : -Double.random(in: 3.00...149.34)
         let stockPriceNumber = NSNumber(value: price)
         let changeNumber = NSNumber(value: change)
-        let numberFormatter = NumberFormatter()
-        numberFormatter.allowsFloats = true
-        numberFormatter.numberStyle = .currency
-        numberFormatter.currencyCode = "USD"
-        self.stockPriceFormattedWithDollar = numberFormatter.string(from: stockPriceNumber)!
-        self.changePriceFormattedWithDollar = numberFormatter.string(from: changeNumber)!
-        numberFormatter.currencySymbol = ""
-        self.stockPriceFormattedWithoutDollar = numberFormatter.string(from: stockPriceNumber)!
-        self.changePriceFormattedWithoutDollar = numberFormatter.string(from: changeNumber)!
+
+        self.stockPriceFormattedWithDollar = currencyFormatter.string(from: stockPriceNumber)!
+        self.changePriceFormattedWithDollar = currencyFormatter.string(from: changeNumber)!
+        self.stockPriceFormattedWithoutDollar = currencyFormatterWithoutSymbol.string(from: stockPriceNumber)!
+        self.changePriceFormattedWithoutDollar = currencyFormatterWithoutSymbol.string(from: changeNumber)!
 
     }
     func hash(into hasher: inout Hasher) {
@@ -80,3 +76,20 @@ struct Stock: Identifiable, Hashable {
         ]
     }
 }
+
+private let currencyFormatter: NumberFormatter = {
+    let formatter = NumberFormatter()
+    formatter.allowsFloats = true
+    formatter.numberStyle = .currency
+    formatter.currencyCode = "USD"
+    return formatter
+}()
+
+private let currencyFormatterWithoutSymbol: NumberFormatter = {
+    let formatter = NumberFormatter()
+    formatter.allowsFloats = true
+    formatter.numberStyle = .currency
+    formatter.currencyCode = "USD"
+    formatter.currencySymbol = ""
+    return formatter
+}()

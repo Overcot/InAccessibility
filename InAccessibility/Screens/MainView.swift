@@ -16,8 +16,30 @@ struct MainView: View {
         self.allStocks = allStocks
     }
     
-    @State var showDetailStock: Stock?
+    @State private var showDetailStock: Stock?
     @State private var showInfoStock: Stock? = nil
+    @State private var textSearch: String = ""
+    
+    private var searchFavoriteStocksResults: [Stock] {
+        if textSearch.isEmpty {
+            return favoriteStocks
+        } else {
+            return favoriteStocks.filter {
+                $0.shortName.contains(textSearch) || $0.name.contains(textSearch)
+            }
+        }
+    }
+    
+    private var searchAllStocksResults: [Stock] {
+        if textSearch.isEmpty {
+            return allStocks
+        } else {
+            return allStocks.filter {
+                $0.shortName.contains(textSearch) || $0.name.contains(textSearch)
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             List {
@@ -42,53 +64,63 @@ struct MainView: View {
             .navigationTitle("Stocks")
             .toolbar(content: {
                 toolbarItems
-            })
+            }).searchable(text: $textSearch) {
+                ForEach(searchAllStocksResults, id: \.self) { stock in
+                    Text("\(stock.shortName) - \(stock.name)").searchCompletion(stock.name)
+                }
+            }
         }
     }
     
     var favoriteStocksSection: some View {
         Section {
-            ForEach(favoriteStocks) { stock in
-                NavigationLink(tag: stock, selection: $showDetailStock, destination:  {DetailView(stock: stock)}) {
+            ForEach(searchFavoriteStocksResults) { stock in
+                NavigationLink(
+                    tag: stock,
+                    selection: $showDetailStock,
+                    destination: {
+                        DetailView(stock: stock)
+                        
+                    }
+                ) {
                     StockCell(stock: stock)
-
                 }
-                    .swipeActions(edge: .leading, content: {
-                        Button {
-                            
-                        } label: {
-                            if stock.favorite {
-                                Label("UnFavorite", systemImage: "star.slash")
-                            } else {
-                                Label("Favorite", systemImage: "star.slash")
-                            }
+                .swipeActions(edge: .leading, content: {
+                    Button {
+                        
+                    } label: {
+                        if stock.favorite {
+                            Label("UnFavorite", systemImage: "star.slash")
+                        } else {
+                            Label("Favorite", systemImage: "star.slash")
                         }
-                        .tint(.yellow)
-                    })
-                    .swipeActions(content: {
-                        Button {
-                            showInfoStock = stock
-                        } label: {
-                            Image(systemName: "info.circle.fill")
-                        }
-                        .tint(.accentColor)
-                    })
-                    .contextMenu {
-                        Button {
-                            showInfoStock = stock
-                        } label: {
-                            Image(systemName: "info.circle.fill")
-                        }
-                        .tint(.accentColor)
                     }
+                    .tint(.yellow)
+                })
+                .swipeActions(content: {
+                    Button {
+                        showInfoStock = stock
+                    } label: {
+                        Image(systemName: "info.circle.fill")
+                    }
+                    .tint(.accentColor)
+                })
+                .contextMenu {
+                    Button {
+                        showInfoStock = stock
+                    } label: {
+                        Image(systemName: "info.circle.fill")
+                    }
+                    .tint(.accentColor)
+                }
                 
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        showDetailStock = stock
-                    }
-                    .accessibilityAction {
-                        showDetailStock = stock
-                    }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    showDetailStock = stock
+                }
+                .accessibilityAction {
+                    showDetailStock = stock
+                }
             }
         } header: {
             HStack {
@@ -109,7 +141,7 @@ struct MainView: View {
     
     var allStocksSection: some View {
         Section {
-            ForEach(allStocks) { stock in
+            ForEach(searchAllStocksResults) { stock in
                 StockCell(stock: stock)
                     .swipeActions(content: {
                         Button {
