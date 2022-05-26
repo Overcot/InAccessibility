@@ -22,8 +22,7 @@ struct StockPrice: View {
     var body: some View {
         VStack(alignment: alignment, spacing: 2) {
             Text(stockPrice)
-                .foregroundColor(.white)
-
+                .foregroundColor(.primary)
             Text(stockChange)
                 .bold()
                 .font(.caption)
@@ -31,10 +30,20 @@ struct StockPrice: View {
                 .background(isGoingUp ? Color(uiColor: .systemGreen) : Color(uiColor: .systemRed))
                 .cornerRadius(6)
                 .foregroundColor(.white)
+
         }
     }
 }
 
+struct CellHorizontalAlignment: AlignmentID {
+  static func defaultValue(in context: ViewDimensions) -> CGFloat {
+    context[HorizontalAlignment.leading]
+  }
+}
+
+extension HorizontalAlignment {
+  static let cellHorizontalAlignment: HorizontalAlignment = .init(CellHorizontalAlignment.self)
+}
 
 struct StockPrice_Previews: PreviewProvider {
     static var previews: some View {

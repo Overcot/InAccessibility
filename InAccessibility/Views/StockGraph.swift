@@ -17,29 +17,43 @@ struct StockGraph: View {
     @Environment(\.accessibilityReduceTransparency) private var accessibilityReduceTransparency
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @Environment(\.legibilityWeight) private var legibilityWeight
-    @Namespace private var circles
     internal init(stock: Stock) {
         self.stock = stock
     }
     
+    private var circlesSpacing: CGFloat {
+        bigCircles ? 2 : 8
+    }
+    
     
     var body: some View {
-        HStack(spacing: bigCircles ? 2 : 8) {
-            ForEach(0..<points.count, id:\.self) { index in
-                Circle()
-                    .frame(width: bigCircles ? 10 : 4, height: bigCircles ? 10 : 4)
-                    .foregroundColor(stock.goingUp ? Color(uiColor: .systemGreen): Color(uiColor: .systemRed))
-                    .offset(y: CGFloat(stock.goingUp ? -points[index] : points[index]) * 0.3)
+        VStack {
+            Spacer()
+            HStack(spacing: circlesSpacing) {
+                ForEach(0..<points.count, id:\.self) { index in
+                    Circle()
+                        .frame(width: bigCircles ? 10 : 4, height: bigCircles ? 10 : 4)
+                        .foregroundColor(stock.goingUp ? Color(uiColor: .systemGreen): Color(uiColor: .systemRed))
+                        .offset(y: CGFloat(stock.goingUp ? -points[index] : points[index]) * 0.3)
+                }
             }
+            .padding(.horizontal, bigCircles ? 0 : 3)
+            .padding(.vertical, bigCircles ? 0 : 3)
+            .padding()
+            .background {
+                Rectangle().frame(height: 1)
+                    .foregroundColor(Color(uiColor: .separator))
+            }
+            Spacer()
         }
+        .background {
+            Color(uiColor: UIColor.tertiarySystemGroupedBackground)
+        }
+        .cornerRadius(7)
         .opacity(accessibilityReduceTransparency ? 1 : (showDots ? 1 : 0))
         .offset(y: showDots ? 0 : 12)
         .animation(accessibilityReduceMotion ? nil : .default, value: showDots)
-        .frame(width: 100, height: 50)
-        .background {
-            Color(uiColor: UIColor.tertiarySystemGroupedBackground)
-                .cornerRadius(7)
-        }.onTapGesture(perform: {
+        .onTapGesture(perform: {
             withAnimation(accessibilityReduceMotion ? nil : .spring()) {
                 bigCircles.toggle()
             }

@@ -47,7 +47,7 @@ struct MainView: View {
                 favoriteStocksSection
                 allStocksSection
             }
-            .navigationViewStyle(.columns)
+            .navigationViewStyle(.stack)
             .alert(showInfoStock?.name ?? "", isPresented: .init(get: {
                 showInfoStock != nil
             }, set: { newValue in
