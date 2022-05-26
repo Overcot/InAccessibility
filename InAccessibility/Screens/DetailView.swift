@@ -14,16 +14,46 @@ enum AlertItem: String, Identifiable {
     var id: String { self.rawValue }
 }
 struct DetailView: View {
+    internal init(stock: Stock) {
+        self.stock = stock
+        var visualDescription = "This is a company that was founded at some point in time by some people with some ideas. The company makes products and they do other things as well. Some of these things go well, some don't. The company employs people, somewhere between 10 and 250.000. The exact amount is not currently available."
+        var accessibleDescription = visualDescription
+        
+        let firstNumberValue = NSNumber(value: 10)
+        let firstNumberLocalized = NumberFormatter.localizedString(from: firstNumberValue,
+                                                  number: .decimal)
+        let firstNumberAccessible = NumberFormatter.localizedString(from: firstNumberValue,
+                                                         number: .spellOut)
+        
+        let secondNumberValue = NSNumber(value: 250000)
+        let secondNumberLocalized = NumberFormatter.localizedString(from: secondNumberValue,
+                                                  number: .decimal)
+        let secondNumberAccessible = NumberFormatter.localizedString(from: secondNumberValue,
+                                                         number: .spellOut)
+        
+        visualDescription = visualDescription.replacingOccurrences(of: "10", with: firstNumberLocalized).replacingOccurrences(of: "250.000", with: secondNumberLocalized)
+        
+        accessibleDescription = accessibleDescription.replacingOccurrences(of: "10", with: firstNumberAccessible).replacingOccurrences(of: "250.000", with: secondNumberAccessible)
+        self.visualDescription = visualDescription
+        self.accessibleDescription = accessibleDescription
+    }
     
-    let stock: Stock
-    @State var selectedAlertItem: AlertItem?
+    
+    private let stock: Stock
+    private let visualDescription: String
+    private let accessibleDescription: String
+    @State private var selectedAlertItem: AlertItem?
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    
+    @Environment(\.accessibilityShowButtonShapes) private var accessibilityShowButtonShapes
+
     var body: some View {
-        ScrollView {
-            companyInfo
-            description
-            buttons
+        ScrollViewReader { scrollView in
+            ScrollView {
+                companyInfo
+                    .accessibilityHeading(.h1)
+                description
+                buttons
+            }
         }
         .toolbar(content: {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -50,12 +80,18 @@ struct DetailView: View {
         .navigationTitle(stock.shortName)
         .navigationBarTitleDisplayMode(.inline)
         .alert(item: $selectedAlertItem, content: { item in
-            if item == .share {
-                return Alert(title: Text("Thanks for sharing!"))
-            } else {
-                return Alert(title: Text("Thanks for favoriting (but not really)!"))
-            }
+            Alert(title: Text(dialogTitle))
         })
+    }
+    private var dialogTitle: LocalizedStringKey {
+        switch selectedAlertItem {
+        case .share:
+            return "Thanks for sharing!"
+        case .favorite:
+            return "Thanks for favoriting (but not really)!"
+        case .none:
+            return ""
+        }
     }
     
     var companyInfo: some View {
@@ -64,17 +100,20 @@ struct DetailView: View {
                 .font(.subheadline)
                 .bold()
                 .foregroundColor(.secondary)
-
             Spacer()
             StockGraph(stock: stock)
         }
     }
     
-    var description: some View {
+    private var description: some View {
         VStack(alignment: .leading) {
             Text("Company Description")
                 .font(.title2.weight(.semibold))
-            Text("This is a company that was founded at some point in time by some people with some ideas. The company makes products and they do other things as well. Some of these things go well, some don't. The company employs people, somewhere between 10 and 250.000. The exact amount is not currently available.")
+                .accessibilityHeading(.h2)
+
+            Text(visualDescription)
+                .accessibilityLabel(accessibleDescription)
+                .accessibilityTextContentType(.narrative)
                 .font(.body)
         }
     }
@@ -96,21 +135,23 @@ struct DetailView: View {
             Button {
                 selectedAlertItem = .share
             } label: {
-                Text("Tap to share")
+                Text("Share")
+                    .underline(accessibilityShowButtonShapes, color: .white)
                     .padding()
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
-            .tint(.blue)
+            .tint(Color(uiColor: .systemBlue))
             Button {
                 selectedAlertItem = .favorite
             } label: {
                 Text("Favorite")
+                    .underline(accessibilityShowButtonShapes, color: .white)
                     .padding()
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
-            .tint(.yellow)
+            .tint(Color(uiColor: .systemYellow))
         }
         .font(.title2.bold())
         .buttonStyle(.borderedProminent)

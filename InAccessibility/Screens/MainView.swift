@@ -18,6 +18,7 @@ struct MainView: View {
     
     @State private var showDetailStock: Stock?
     @State private var showInfoStock: Stock? = nil
+    @State private var showFavoriteStock: Stock? = nil
     @State private var textSearch: String = ""
     
     private var searchFavoriteStocksResults: [Stock] {
@@ -39,7 +40,7 @@ struct MainView: View {
             }
         }
     }
-    
+        
     var body: some View {
         NavigationView {
             List {
@@ -56,10 +57,27 @@ struct MainView: View {
             }), presenting: showInfoStock, actions: { _ in
                 Button("OK") {
                     showInfoStock = nil
-                }
+                }.keyboardShortcut(.defaultAction)
                 
             }, message: { stock in
                 Text("The stock price for \(stock.name) (\(stock.shortName)) is \(stock.stockPriceFormattedWithDollar).")
+            })
+            .alert(showFavoriteStock?.name ?? "", isPresented: .init(get: {
+                showFavoriteStock != nil
+            }, set: { newValue in
+                if (!newValue) {
+                    showFavoriteStock = nil
+                }
+            }), presenting: showFavoriteStock, actions: { _ in
+                Button("OK") {
+                    showFavoriteStock = nil
+                }.keyboardShortcut(.defaultAction)
+            }, message: { stock in
+                if stock.favorite {
+                    Text("The \(stock.name) was removed from favorites")
+                } else {
+                    Text("The \(stock.name) was added to favorites")
+                }
             })
             .navigationTitle("Stocks")
             .toolbar(content: {
@@ -75,66 +93,15 @@ struct MainView: View {
     var favoriteStocksSection: some View {
         Section {
             ForEach(searchFavoriteStocksResults) { stock in
-                NavigationLink(
-                    tag: stock,
-                    selection: $showDetailStock,
-                    destination: {
-                        DetailView(stock: stock)
-                        
-                    }
-                ) {
-                    StockCell(stock: stock)
-                }
-                .swipeActions(edge: .leading, content: {
-                    Button {
-                        
-                    } label: {
-                        if stock.favorite {
-                            Label("UnFavorite", systemImage: "star.slash")
-                        } else {
-                            Label("Favorite", systemImage: "star.slash")
-                        }
-                    }
-                    .tint(.yellow)
-                })
-                .swipeActions(content: {
-                    Button {
-                        showInfoStock = stock
-                    } label: {
-                        Image(systemName: "info.circle.fill")
-                    }
-                    .tint(.accentColor)
-                })
-                .contextMenu {
-                    Button {
-                        showInfoStock = stock
-                    } label: {
-                        Image(systemName: "info.circle.fill")
-                    }
-                    .tint(.accentColor)
-                }
-                
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    showDetailStock = stock
-                }
-                .accessibilityAction {
-                    showDetailStock = stock
-                }
+                cellView(stock: stock)
             }
         } header: {
-            HStack {
-                Text("Favorite Stocks")
-                Spacer()
-                Button {
-                    
-                } label: {
-                    Text("Tap for more")
-                }
-                
-            }
+            Text("Favorite Stocks")
+                .accessibilityHeading(.h2)
         } footer: {
             Text("Favorite stocks are updated every 1 minute.")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
         
     }
@@ -142,25 +109,11 @@ struct MainView: View {
     var allStocksSection: some View {
         Section {
             ForEach(searchAllStocksResults) { stock in
-                StockCell(stock: stock)
-                    .swipeActions(content: {
-                        Button {
-                            showInfoStock = stock
-                        } label: {
-                            Image(systemName: "info.circle.fill")
-                        }
-                        .tint(.accentColor)
-                    })
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        showDetailStock = stock
-                    }
-                    .accessibilityAction {
-                        showDetailStock = stock
-                    }
+                cellView(stock: stock)
             }
         } header: {
             Text("All Stocks")
+                .accessibilityHeading(.h2)
         }
     }
     
@@ -175,6 +128,56 @@ struct MainView: View {
                 Text("Settings")
             }
         }
+    }
+    private func cellView(stock: Stock) -> some View {
+        NavigationLink(
+            tag: stock,
+            selection: $showDetailStock,
+            destination: {
+                DetailView(stock: stock)
+            }
+        ) {
+            StockCell(stock: stock)
+        }
+        .swipeActions(edge: .leading, content: {
+            favoriteOrUnfavoriteButton(stock: stock)
+        })
+        .swipeActions(content: {
+            infoButton(stock: stock)
+        })
+        .contextMenu {
+            VStack {
+                infoButton(stock: stock)
+                Divider()
+                favoriteOrUnfavoriteButton(stock: stock)
+            }
+        }
+        .contentShape(Rectangle())
+        .accessibilityAction {
+            showDetailStock = stock
+        }
+    }
+    
+    private func infoButton(stock: Stock) -> some View {
+        Button {
+            showInfoStock = stock
+        } label: {
+            Label("Show stock info", systemImage: "info.circle.fill")
+        }
+        .tint(Color(uiColor: .systemBlue))
+    }
+    
+    private func favoriteOrUnfavoriteButton(stock: Stock) -> some View {
+        Button {
+            showFavoriteStock = stock
+        } label: {
+            if stock.favorite {
+                Label("Remove from favorites", systemImage: "star.slash")
+            } else {
+                Label("Mark as favorite", systemImage: "star")
+            }
+        }
+        .tint(Color(uiColor: .systemYellow))
     }
 }
 

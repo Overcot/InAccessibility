@@ -55,7 +55,7 @@ struct StockCell: View {
                 .bold()
             Text(stock.name)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(uiColor: .secondaryLabel))
         }
     }
 }

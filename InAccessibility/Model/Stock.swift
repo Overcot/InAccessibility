@@ -68,11 +68,6 @@ struct Stock: Identifiable, Hashable {
             Stock(name: "Vivid", shortName: "VVID", favorite: false),
             Stock(name: "Oil Co", shortName: "OILC", favorite: false),
             Stock(name: "Google", shortName: "GOOG", favorite: false),
-            Stock(name: "Apple", shortName: "AAPL", favorite: false),
-            Stock(name: "Nintendo", shortName: "NNTD", favorite: false),
-            Stock(name: "Vivid", shortName: "VVID", favorite: false),
-            Stock(name: "Oil Co", shortName: "OILC", favorite: false),
-            Stock(name: "Google", shortName: "GOOG", favorite: false),
         ]
     }
 }

@@ -15,21 +15,20 @@ struct StockPrice: View {
         self.alignment = alignment
     }
     
-    
     let stockPrice: String
     let stockChange: String
     let isGoingUp: Bool
     let alignment: HorizontalAlignment
-    
     var body: some View {
         VStack(alignment: alignment, spacing: 2) {
             Text(stockPrice)
-            
+                .foregroundColor(.white)
+
             Text(stockChange)
                 .bold()
                 .font(.caption)
                 .padding(4)
-                .background(isGoingUp ? Color.green : Color.red)
+                .background(isGoingUp ? Color(uiColor: .systemGreen) : Color(uiColor: .systemRed))
                 .cornerRadius(6)
                 .foregroundColor(.white)
         }
